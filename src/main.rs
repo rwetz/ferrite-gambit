@@ -128,6 +128,10 @@ fn smoke() -> Result<(), String> {
 }
 
 fn main() {
+    if std::env::args().any(|arg| arg == "--version") {
+        println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+        return;
+    }
     if std::env::args().any(|arg| arg == "--smoke") {
         if let Err(error) = smoke() {
             eprintln!("{error}");
