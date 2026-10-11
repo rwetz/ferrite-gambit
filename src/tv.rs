@@ -36,7 +36,11 @@ pub fn apply(line: &str, position: &mut Position) -> Result<bool, String> {
                         players
                             .iter()
                             .map(|p| {
-                                format!("{} ({})", p["user"]["name"].as_str().unwrap_or("Anonymous"), p["rating"].as_u64().unwrap_or(0))
+                                format!(
+                                    "{} ({})",
+                                    p["user"]["name"].as_str().unwrap_or("Anonymous"),
+                                    p["rating"].as_u64().unwrap_or(0)
+                                )
                             })
                             .collect::<Vec<_>>()
                             .join(" / ")
@@ -64,14 +68,14 @@ pub fn apply(line: &str, position: &mut Position) -> Result<bool, String> {
     Ok(true)
 }
 
-pub fn board(fen: &str) -> Result<Vec<String>, String> {
+pub fn squares(fen: &str) -> Result<Vec<Vec<char>>, String> {
     let placement = fen.split_whitespace().next().ok_or("Empty FEN")?;
     let ranks: Vec<_> = placement.split('/').collect();
     if ranks.len() != 8 {
         return Err("FEN requires eight ranks".into());
     }
     let mut rows = Vec::new();
-    for (rank, source) in ranks.iter().enumerate() {
+    for source in ranks {
         let mut cells = Vec::new();
         for piece in source.chars() {
             if ('1'..='8').contains(&piece) {
@@ -85,8 +89,27 @@ pub fn board(fen: &str) -> Result<Vec<String>, String> {
         if cells.len() != 8 {
             return Err("FEN rank requires eight squares".into());
         }
-        rows.push(format!("{} | {} |", 8 - rank, cells.iter().map(char::to_string).collect::<Vec<_>>().join(" ")));
+        rows.push(cells);
     }
+    Ok(rows)
+}
+
+pub fn board(fen: &str) -> Result<Vec<String>, String> {
+    let mut rows: Vec<_> = squares(fen)?
+        .iter()
+        .enumerate()
+        .map(|(rank, cells)| {
+            format!(
+                "{} | {} |",
+                8 - rank,
+                cells
+                    .iter()
+                    .map(char::to_string)
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        })
+        .collect();
     rows.push("    a b c d e f g h".into());
     Ok(rows)
 }
@@ -136,7 +159,11 @@ fn receive(tx: &SyncSender<Result<Position, String>>, stop: &AtomicBool) -> Resu
     let mut position = Position::default();
     while !stop.load(Ordering::Relaxed) {
         let mut line = String::new();
-        let count = reader.by_ref().take(64 * 1024).read_line(&mut line).map_err(|_| "TV stream interrupted; retrying in 60 seconds")?;
+        let count = reader
+            .by_ref()
+            .take(64 * 1024)
+            .read_line(&mut line)
+            .map_err(|_| "TV stream interrupted; retrying in 60 seconds")?;
         if count == 0 {
             return Err("TV stream ended; retrying in 60 seconds".into());
         }

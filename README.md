@@ -57,3 +57,10 @@ Release commits stay off `main`, so the workflow cannot create a push loop.
 Builds and tests must succeed before publication. Rerunning a workflow reuses
 its tag. Manual `vMAJOR.MINOR.PATCH` tags still work when they match the package
 version. Push feature branches normally; they do not publish releases.
+
+The board stays centered and chooses a crisp scale that fits its pane. White
+pieces use the foreground colour; black pieces use the scheme accent. Lichess
+only opens when you choose **Open Lichess TV**.
+
+Each Windows executable includes its own pixel icon. `assets/logo.svg` also
+supplies the matching catalogue icon in Lodestone.

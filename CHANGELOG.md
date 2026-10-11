@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+- Remove automatic browser opening on startup; keep explicit Lichess links.
+- Center and resize the board with scheme colours and formatted clocks.
+- Add matching SVG catalogue icons and embedded Windows application icons.
+- Remember native window size and position.
+
 ## [0.1.0] - 2026-10-09
 
 - Live Lichess TV with an ASCII board, players, reported clocks, and automatic reconnect.
