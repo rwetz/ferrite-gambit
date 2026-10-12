@@ -1,5 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod prefs;
+mod prefs_store;
 mod probe;
+mod settings_ui;
 mod tv;
 use ferrite_design::prelude::*;
 use gpui::{
@@ -9,6 +12,7 @@ use gpui::{
 
 struct Gambit {
     palette: Entity<CommandPalette>,
+    settings: Entity<settings_ui::Settings>,
     _appearance: Subscription,
     position: tv::Position,
     status: String,
@@ -47,6 +51,7 @@ impl Gambit {
             }
         });
         let app = Self {
+            settings: cx.new(|_| settings_ui::Settings::new()),
             palette: cx.new(|cx| CommandPalette::new(window, cx)),
             _appearance: theme::follow_system(window),
             position: tv::Position::default(),
@@ -61,7 +66,7 @@ impl Gambit {
                 commands.push(
                     command(format!("Scheme: {}", scheme.name))
                         .group("Theme")
-                        .on_run(move |_, cx| theme::set_scheme(scheme, cx)),
+                        .on_run(move |_, cx| prefs::scheme(scheme, cx)),
                 );
             }
             commands.push(
@@ -73,7 +78,7 @@ impl Gambit {
                         } else {
                             Appearance::Light
                         };
-                        theme::set_appearance(appearance, window, cx);
+                        prefs::appearance(appearance, window, cx);
                     }),
             );
             commands.push(
@@ -83,6 +88,7 @@ impl Gambit {
                         let _ = weak.update(cx, |this, cx| this.open_source(cx));
                     }),
             );
+            commands.push(settings_ui::settings_command(app.settings.clone()));
             palette.set_commands(commands, cx);
         });
         app
@@ -97,17 +103,21 @@ impl Gambit {
     }
 }
 impl Render for Gambit {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let p = palette(cx);
         if !self.position.fen.is_empty() {
             probe::record(format!("Live board: {}", self.position.players));
         }
 
         let squares = tv::squares(&self.position.fen).ok();
+        // The board never gets smaller than its smallest crisp size (nine
+        // tiles wide with the rank labels, eight and a half tall) plus the
+        // panel's header and padding; below that the window scrolls.
+        let smallest = f32::from(display_size(Scale::X1, window)) * 2.;
         let board = panel("Live board")
             .meta("LICHESS TV")
             .flex_1()
-            .min_h_0()
+            .min_h(px(smallest * 8.5 + 50.))
             .child(
                 responsive("board-room", move |room, window, cx| {
                     let p = palette(cx);
@@ -240,18 +250,26 @@ impl Render for Gambit {
                     this.palette
                         .update(cx, |palette, cx| palette.toggle(window, cx))
                 }))
+                .on_action(cx.listener(|this, _: &settings_ui::ToggleSettings, _, cx| {
+                    this.settings.update(cx, |s, cx| s.toggle(cx));
+                }))
+                .child(self.settings.clone())
                 .child(self.palette.clone())
-                .child(title_bar("Gambit").child(menu))
                 .child(
-                    div()
-                        .id("content")
-                        .flex()
-                        .flex_col()
-                        .flex_1()
-                        .min_h_0()
-                        .gap_3()
-                        .p_4()
-                        .children(content),
+                    title_bar("Gambit")
+                        .child(settings_ui::button(self.settings.clone()))
+                        .child(menu),
+                )
+                .child(
+                    scroll_area("content").flex_1().min_h_0().child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .min_h_full()
+                            .gap_3()
+                            .p_4()
+                            .children(content),
+                    ),
                 )
                 .child(
                     status_bar()
@@ -290,9 +308,11 @@ fn main() {
         return;
     }
     gpui_platform::application().run(|cx: &mut App| {
-        ferrite_design::init(Appearance::Dark, cx);
-        theme::apply_env(cx);
-        cx.bind_keys([KeyBinding::new("ctrl-shift-p", TogglePalette, None)]);
+        prefs::init(cx);
+        cx.bind_keys([
+            KeyBinding::new("ctrl-shift-p", TogglePalette, None),
+            KeyBinding::new("ctrl-,", settings_ui::ToggleSettings, None),
+        ]);
         let options =
             chrome::remembered_window_options("gambit", "Gambit", size(px(1100.), px(800.)), cx);
         cx.open_window(options, |window, cx| {

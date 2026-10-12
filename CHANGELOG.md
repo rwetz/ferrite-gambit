@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Short windows scroll instead of clipping the board; the board keeps its smallest crisp size.
+
 - Remove automatic browser opening on startup; keep explicit Lichess links.
 - Center and resize the board with scheme colours and formatted clocks.
 - Add matching SVG catalogue icons and embedded Windows application icons.
