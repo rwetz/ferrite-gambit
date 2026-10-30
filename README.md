@@ -1,6 +1,20 @@
-# Gambit
+<p align="center">
+  <img src="assets/logo.svg" width="128" height="128" alt="Gambit logo">
+</p>
 
-Live Lichess TV, with a text-mode board.
+<h1 align="center">Gambit</h1>
+
+<p align="center">
+  Live Lichess TV, with a text-mode board.
+</p>
+
+<p align="center">
+  <a href="https://github.com/rwetz/ferrite-gambit/actions/workflows/ci.yml"><img src="https://github.com/rwetz/ferrite-gambit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/rwetz/ferrite-gambit/releases/latest"><img src="https://img.shields.io/github/v/release/rwetz/ferrite-gambit?color=F2A93B&labelColor=18181B" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-3D3D42?labelColor=18181B" alt="License"></a>
+</p>
+
+![Gambit showing a live Lichess TV game as a text-mode board](docs/main.png)
 
 An early development release. [Windows downloads](https://github.com/rwetz/ferrite-gambit/releases/latest) are also installable through Lodestone.
 
@@ -68,6 +82,13 @@ supplies the matching catalogue icon in Lodestone.
 ## Settings
 
 Open the sliders button in the title bar, press Ctrl+, or choose Settings from the command palette. All ten schemes, Dark/Light/System appearance, motion refresh rate (12 to 240 FPS), and row density apply immediately and persist per app. Save failures appear in Settings. Start with `--settings` to open the drawer directly. Ferrite launcher environment overrides take precedence at startup.
+
+## Keys
+
+| Keys | |
+|---|---|
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> | Command palette |
+| <kbd>Ctrl</kbd>+<kbd>,</kbd> | Settings |
 
 ---
 
